@@ -14,6 +14,18 @@
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="manifest" href="/manifest.json" />
     <title>For Farmers, For Us | Digital Agriculture Marketplace & 2G Telephony</title>
+    <script>
+      window.process = window.process || { env: { NODE_ENV: 'development' } };
+      if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            for (var i = 0; i < regs.length; i++) {
+              regs[i].unregister();
+            }
+          });
+        }
+      }
+    </script>
   </head>
   <body class="antialiased">
     <noscript>
