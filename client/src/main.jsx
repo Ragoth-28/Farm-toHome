@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
+import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { CartProvider } from './context/CartContext';
@@ -15,16 +16,19 @@ registerServiceWorker();
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <ThemeProvider>
-        <NotificationProvider>
-          <CartProvider>
-            <SkipLink />
-            <App />
-          </CartProvider>
-        </NotificationProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <NotificationProvider>
+            <CartProvider>
+              <SkipLink />
+              <App />
+            </CartProvider>
+          </NotificationProvider>
+        </ThemeProvider>
+      </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );
+
 
 

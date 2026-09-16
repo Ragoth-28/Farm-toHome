@@ -28,8 +28,7 @@ import KisanCopilot from './components/common/KisanCopilot';
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="min-h-screen flex flex-col font-sans bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <div className="min-h-screen flex flex-col font-sans bg-gray-50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 transition-colors duration-200">
         <Toaster 
           position="top-right" 
           toastOptions={{
@@ -108,7 +107,6 @@ function App() {
         <KisanCopilot />
         <Footer />
       </div>
-    </AuthProvider>
   );
 }
 
