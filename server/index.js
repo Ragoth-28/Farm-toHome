@@ -14,7 +14,9 @@ app.use(helmet({ contentSecurityPolicy: false }));
 // CORS Configuration (supports local dev, Vercel frontend, and Render)
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://127.0.0.1:3000',
   'http://localhost:5173',
+  'http://127.0.0.1:5173',
   process.env.CLIENT_URL
 ].filter(Boolean);
 
