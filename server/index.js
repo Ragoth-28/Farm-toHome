@@ -3,7 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const { initializeDatabase } = require('./config/database');
+const db = require('./config/database');
+const { initializeDatabase } = db;
 
 const app = express();
 const PORT = process.env.PORT || 5000;
