@@ -47,7 +47,7 @@ class ErrorBoundary extends Component {
               We encountered an unexpected issue while rendering this section. Your order and account data remain secure.
             </p>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <div className="mb-6 p-3 bg-red-50 dark:bg-red-950/30 rounded-xl text-left border border-red-200 dark:border-red-900/50 overflow-x-auto max-h-32">
                 <p className="text-[11px] font-mono text-red-800 dark:text-red-300 font-bold">
                   {this.state.error.toString()}

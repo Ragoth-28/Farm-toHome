@@ -1,12 +1,13 @@
 // Service Worker Registration for KisanSetu PWA
 
 export const registerServiceWorker = () => {
-  if ('serviceWorker' in navigator && process.env.NODE_ENV !== 'test') {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register('/sw.js')
-        .then((registration) => {
-          console.log('[PWA] Service Worker registered with scope:', registration.scope);
+  if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    if (import.meta.env.PROD) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            console.log('[PWA] Service Worker registered with scope:', registration.scope);
 
           registration.onupdatefound = () => {
             const installingWorker = registration.installing;
@@ -26,7 +27,15 @@ export const registerServiceWorker = () => {
         .catch((error) => {
           console.warn('[PWA] Service Worker registration failed:', error);
         });
-    });
+      });
+    } else {
+      // In development mode, unregister any lingering service workers to avoid stale Vite HMR caches
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister();
+        }
+      }).catch(() => {});
+    }
   }
 };
 
