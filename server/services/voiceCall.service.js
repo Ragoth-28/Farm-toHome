@@ -99,7 +99,11 @@ class VoiceCallService {
     const creds = this.getCredentials();
     const cleanDigits = (toPhone || '').replace(/[^0-9]/g, '').slice(-10);
     const cleanPhone = `+91${cleanDigits}`;
-    const baseUrl = process.env.PUBLIC_URL || 'http://localhost:5000';
+    const tunnelService = require('./tunnel.service');
+    let baseUrl = tunnelService.getPublicUrl();
+    if (!baseUrl || !baseUrl.startsWith('https://')) {
+      baseUrl = await tunnelService.startTunnel();
+    }
 
     // 1. Generate natural Indian language audio greeting via Sarvam AI
     let sarvamAudioUrl = null;

@@ -3,6 +3,7 @@ const nlpExtractor = require('../nlp/extractor');
 const db = require('../config/database');
 const mapsService = require('../services/maps.service');
 const smsService = require('../services/sms.service');
+const tunnelService = require('../services/tunnel.service');
 
 // Tamil display names for common crops
 const tamilCropNames = {
@@ -85,7 +86,7 @@ const handleTwilioGather = async (req, res) => {
       }
     }
     const cleanPhone = rawPhone.slice(-10) || '9876543210';
-    const baseUrl = process.env.PUBLIC_URL || 'https://oral-iowa-portal-wright.trycloudflare.com';
+    const baseUrl = tunnelService.getPublicUrl() || process.env.PUBLIC_URL || 'http://localhost:5000';
 
     const getVoiceLang = (l) => l === 'ta' ? 'ta-IN' : l === 'en' ? 'en-IN' : 'hi-IN';
     const getSpeaker = (l) => l === 'ta' ? 'kavitha' : 'priya';
@@ -132,19 +133,26 @@ const handleTwilioGather = async (req, res) => {
 
       // Option 1: Sell Crop -> Speak details + address after beep
       if (digits === '1' || digits === '') {
-        const sellPrompt = lang === 'ta'
-          ? 'बीप ओलिर्कु पिरगु तेलिवाग चोल्लुङ्गल: उङ्गल पयिरिन पेयर, एत्तने किलो, ओरु किलो विले, मट्रुम उङ्गल ऊरु मुगवरि।'
-          : lang === 'en'
-          ? 'After the beep, please clearly speak: crop name, quantity in kilograms, expected price per kg, and your farm address.'
-          : 'बीप की आवाज के बाद बोलें: फसल का नाम, कितने किलो, प्रति किलो भाव, और आपका पता।';
+        const tamilPromptText = 'வணக்கம் உழவர் தோழரே! உழவன் நேரடி சந்தைக்கு நல்வரவு. பீப் ஒலிக்கு பிறகு தெளிவாக சொல்லுங்கள்: உங்கள் பயிரின் பெயர், எத்தனை கிலோ, ஒரு கிலோ விலை, மற்றும் ஊர்.';
+        const hindiPromptText = 'नमस्ते किसान भाई! किसान सेतु में आपका स्वागत है। बीप की आवाज के बाद बोलें: फसल का नाम, कितने किलो, प्रति किलो भाव, और आपका पता।';
+        const englishPromptText = 'Welcome to KisanSetu direct market. After the beep, please clearly speak: crop name, quantity in kilograms, expected price per kg, and your farm address.';
 
-        const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
+        const promptText = lang === 'ta' ? tamilPromptText : (lang === 'hi' ? hindiPromptText : englishPromptText);
+        const sarvamAudio = await getSarvamAudio(promptText, lang);
+
+        const playTag = sarvamAudio
+          ? `<Play>${sarvamAudio}</Play>`
+          : `<Say voice="Polly.Aditi" language="${lang === 'en' ? 'en-IN' : 'hi-IN'}">${lang === 'ta' ? 'வணக்கம் உழவர் தோழரே! விளைபொருளை விற்க பீப் ஒலிக்கு பிறகு சொல்லவும்.' : hindiPromptText}</Say>`;
+
+        const speechLang = lang === 'ta' ? 'ta-IN' : (lang === 'hi' ? 'hi-IN' : 'en-IN');
 
         return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say voice="Polly.Aditi" language="${langCode}">${sellPrompt}</Say>
-  <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="20" playBeep="true" timeout="6" trim="trim-silence"/>
+  <Gather input="speech dtmf" action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" timeout="8" speechTimeout="auto" language="${speechLang}">
+    ${playTag}
+  </Gather>
+  <Record action="${baseUrl}/api/ivr/twilio-gather?step=PRODUCE&amp;lang=${lang}&amp;phone=${cleanPhone}" method="POST" maxLength="25" playBeep="true" timeout="6" trim="trim-silence"/>
 </Response>`);
       }
 
@@ -234,19 +242,22 @@ const handleTwilioGather = async (req, res) => {
 
       const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
 
-      const verifyMsg = lang === 'ta'
-        ? `नीङ्गल चोन्नदु: पयिर ${displayCrop}, अलवु ${qty} किलो, ओरु किलो विले ${price} रूपाय, मुगवरि ${address}। इदु सरि endral ओण्ड्रु अळुत्तवुम। मात्र इरंडु अळुत्तवुम।`
-        : lang === 'en'
-        ? `You said: crop ${crop}, quantity ${qty} kilograms, price ${price} rupees per kg, farm address ${address}. If correct, press 1. To speak again, press 2.`
-        : `आपने बताया: फसल ${crop}, वजन ${qty} किलो, भाव ${price} रुपये प्रति किलो, पता ${address}। सही है तो 1 दबाएं। दोबारा बोलने के लिए 2 दबाएं।`;
+      const verifyTamil = `நீங்கள் சொன்னது: பயிர் ${displayCrop}, அளவு ${qty} கிலோ, ஒரு கிலோ விலை ${price} ரூபாய், ஊர் ${address}. உறுதி செய்ய 1 ஐ அழுத்தவும். மீண்டும் சொல்ல 2 ஐ அழுத்தவும்.`;
+      const verifyHindi = `आपने बताया: फसल ${crop}, वजन ${qty} किलो, भाव ${price} रुपये प्रति किलो, पता ${address}। सही है तो 1 दबाएं। दोबारा बोलने के लिए 2 दबाएं।`;
+      const verifyEnglish = `You said: crop ${crop}, quantity ${qty} kilograms, price ${price} rupees per kg, farm address ${address}. If correct, press 1. To speak again, press 2.`;
 
-      const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
+      const verifyText = lang === 'ta' ? verifyTamil : (lang === 'hi' ? verifyHindi : verifyEnglish);
+      const verifyAudio = await getSarvamAudio(verifyText, lang);
+
+      const playTag = verifyAudio
+        ? `<Play>${verifyAudio}</Play>`
+        : `<Say voice="Polly.Aditi" language="${lang === 'en' ? 'en-IN' : 'hi-IN'}">${verifyText}</Say>`;
 
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
   <Gather action="${baseUrl}/api/ivr/twilio-gather?step=CONFIRM&amp;lang=${lang}&amp;crop=${encodeURIComponent(crop)}&amp;qty=${qty}&amp;price=${price}&amp;address=${encodeURIComponent(address)}&amp;phone=${cleanPhone}" numDigits="1" method="POST" timeout="10">
-    <Say voice="Polly.Aditi" language="${langCode}">${verifyMsg}</Say>
+    ${playTag}
   </Gather>
 </Response>`);
     }
@@ -321,18 +332,21 @@ const handleTwilioGather = async (req, res) => {
       }
 
       const displayCrop = (lang === 'ta' && tamilCropNames[crop]) ? tamilCropNames[crop] : crop;
-      const successMsg = lang === 'ta'
-        ? `वाळ्त्तुकल! उङ्गल ${qty} किलो ${displayCrop}, ${price} रूपाय, वेद्रिगरमाग पदिवानदु। नन्ड्री! जेय किसन!`
-        : lang === 'en'
-        ? `Congratulations! Your ${qty} kilograms of ${crop} at ${price} rupees is confirmed. Listing ID is ${listingId}. Thank you! Jai Kisan!`
-        : `बधाई हो किसान भाई! आपकी ${qty} किलो ${crop}, ${price} रुपये, लिस्ट हो गई है। लिस्टिंग नंबर ${listingId}। धन्यवाद! जय किसान!`;
+      const successTamil = `வாழ்த்துகள் உழவர் தோழரே! உங்கள் ${qty} கிலோ ${displayCrop}, ${price} ரூபாய், வெற்றிகரமாக நேரடி சந்தையில் பட்டியலிடப்பட்டது. நன்றி! ஜெய் கிசான்!`;
+      const successHindi = `बधाई हो किसान भाई! आपकी ${qty} किलो ${crop}, ${price} रुपये प्रति किलो, लिस्ट हो गई है। धन्यवाद! जय किसान!`;
+      const successEnglish = `Congratulations! Your ${qty} kilograms of ${crop} at ${price} rupees is confirmed and live on the marketplace. Thank you! Jai Kisan!`;
 
-      const langCode = lang === 'en' ? 'en-IN' : 'hi-IN';
+      const successText = lang === 'ta' ? successTamil : (lang === 'hi' ? successHindi : successEnglish);
+      const successAudio = await getSarvamAudio(successText, lang);
+
+      const playTag = successAudio
+        ? `<Play>${successAudio}</Play>`
+        : `<Say voice="Polly.Aditi" language="${lang === 'en' ? 'en-IN' : 'hi-IN'}">${successText}</Say>`;
 
       return res.send(`<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Pause length="1"/>
-  <Say voice="Polly.Aditi" language="${langCode}">${successMsg}</Say>
+  ${playTag}
 </Response>`);
     }
 

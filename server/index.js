@@ -7,6 +7,7 @@ const db = require('./config/database');
 const { initializeDatabase } = db;
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 
 // Middleware
@@ -110,8 +111,14 @@ async function start() {
   try {
     await initializeDatabase();
     console.log('Database ready.');
-    app.listen(PORT, () => {
+    const tunnelService = require('./services/tunnel.service');
+    app.listen(PORT, async () => {
       console.log(`Server running on port ${PORT}`);
+
+      // Start public HTTPS tunnel so Twilio cloud webhooks can reach server
+      tunnelService.startTunnel(PORT).catch(err => {
+        console.warn('[Tunnel Startup Warning]:', err.message);
+      });
 
       // Auto-Cancel Worker: Every 5 minutes, cancel unconfirmed orders past their 2-hour deadline
       setInterval(() => {
