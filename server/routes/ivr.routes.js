@@ -8,7 +8,9 @@ const {
   handleUSSD, 
   handleIVRAction, 
   getDialphoneLogs,
-  triggerOutboundCall
+  triggerOutboundCall,
+  checkTwilioVerification,
+  synthesizeSarvamSpeech
 } = require('../controllers/ivr.controller');
 const handleTwilioGather = require('../controllers/twilio.webhook');
 
@@ -16,6 +18,8 @@ const handleTwilioGather = require('../controllers/twilio.webhook');
 router.post('/voice-ai', handleVoiceAI);
 router.post('/dialogue-call', handleDialogueCall);
 router.post('/trigger-outbound-call', triggerOutboundCall);
+router.post('/check-verification', checkTwilioVerification);
+router.post('/synthesize-speech', synthesizeSarvamSpeech);
 
 // Interactive Live Twilio Gather Webhook (Handles DTMF over actual phone calls)
 router.all('/twilio-gather', handleTwilioGather);

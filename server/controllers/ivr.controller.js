@@ -6,6 +6,8 @@ const smsService = require('../services/sms.service');
 const otpService = require('../services/otp.service');
 const mapsService = require('../services/maps.service');
 const sarvamService = require('../services/sarvam.service');
+const sarvamTtsService = require('../services/sarvam.tts.service');
+const voiceCallService = require('../services/voiceCall.service');
 
 // In-memory active USSD session store: sessionId -> { phone, step, data }
 const ussdSessions = new Map();
@@ -1068,8 +1070,6 @@ const getDialphoneLogs = async (req, res) => {
   }
 };
 
-const voiceCallService = require('../services/voiceCall.service');
-
 /**
  * Push helper to dispatch automated SMS
  */
@@ -1078,16 +1078,72 @@ const dispatchFarmerSMS = async (phone, text) => {
 };
 
 /**
+ * Check if a phone number is verified in Twilio
+ */
+const checkTwilioVerification = async (req, res) => {
+  try {
+    const { phone = '9344452523' } = req.body;
+    const result = await voiceCallService.checkNumberVerification(phone);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Generate natural Indian language speech audio via Sarvam AI
+ */
+const synthesizeSarvamSpeech = async (req, res) => {
+  try {
+    const { text, language = 'ta' } = req.body;
+    if (!text) {
+      return res.status(400).json({ success: false, message: 'Text is required' });
+    }
+    const langCode = language === 'ta' ? 'ta-IN' : language === 'en' ? 'en-IN' : 'hi-IN';
+    const audioUrl = await sarvamTtsService.generateAudio(text, langCode);
+    res.json({
+      success: true,
+      audioUrl,
+      text,
+      language: langCode
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
  * Trigger Real Outbound Phone Call via Twilio to Farmer's Phone
  */
 const triggerOutboundCall = async (req, res) => {
   try {
-    const { phone = '7989998568' } = req.body;
-    const callRes = await voiceCallService.makeVoiceCall(phone);
+    const { phone = '9344452523', lang = 'ta' } = req.body;
+    
+    // 1. Check Twilio verification first
+    const verification = await voiceCallService.checkNumberVerification(phone);
+
+    // If Twilio is configured and the number is not verified, inform client
+    if (verification.isConfigured && !verification.isVerified) {
+      return res.json({
+        success: false,
+        unverified: true,
+        verification,
+        message: `Phone number +91 ${phone.replace(/[^0-9]/g, '').slice(-10)} is not verified in Twilio. Twilio Trial accounts only allow calls to verified caller IDs.`
+      });
+    }
+
+    // 2. Make outbound call with Sarvam AI audio greeting
+    const callRes = await voiceCallService.makeVoiceCall(phone, lang);
     res.json({
-      success: true,
-      message: 'Outbound Voice Phone Call placed successfully!',
-      data: callRes
+      success: callRes.success,
+      message: callRes.success 
+        ? 'Outbound Voice Phone Call placed successfully!' 
+        : (callRes.message || 'Voice call could not be completed'),
+      data: callRes,
+      verification
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Voice call error', error: error.message });
@@ -1272,5 +1328,7 @@ module.exports = {
   getDialphoneLogs,
   dispatchFarmerSMS,
   triggerOutboundCall,
-  handleTwilioGather
+  handleTwilioGather,
+  checkTwilioVerification,
+  synthesizeSarvamSpeech
 };

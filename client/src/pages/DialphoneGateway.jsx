@@ -16,11 +16,13 @@ import api from '../api/axios';
 
 const DialphoneGateway = () => {
   // Live Outbound Call State
-  const [targetPhone, setTargetPhone] = useState('7989998568');
+  const [targetPhone, setTargetPhone] = useState('9344452523');
   const [isCallingOutbound, setIsCallingOutbound] = useState(false);
-  const [outboundCallStatus, setOutboundCallStatus] = useState('IDLE'); // 'IDLE' | 'RINGING' | 'IN_CALL' | 'COMPLETED' | 'FAILED'
+  const [outboundCallStatus, setOutboundCallStatus] = useState('IDLE'); // 'IDLE' | 'RINGING' | 'IN_CALL' | 'COMPLETED' | 'FAILED' | 'UNVERIFIED'
   const [callSid, setCallSid] = useState('');
   const [isWsConnected, setIsWsConnected] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState('IDLE'); // 'IDLE' | 'CHECKING' | 'VERIFIED' | 'UNVERIFIED' | 'NOT_CONFIGURED'
+  const [verificationDetails, setVerificationDetails] = useState(null);
 
   // Active Simulation Tab: 'voice-ai' | 'sms-gateway' | 'recordings'
   const [activeTab, setActiveTab] = useState('voice-ai');
@@ -137,7 +139,35 @@ const DialphoneGateway = () => {
     }
   };
 
-  // Trigger outbound call with live simulated progression
+  // Check Twilio verification for phone number
+  const checkVerification = async (phoneToCheck = targetPhone) => {
+    const clean = (phoneToCheck || '').replace(/[^0-9]/g, '').slice(-10);
+    if (!clean || clean.length !== 10) return;
+    setVerificationStatus('CHECKING');
+    try {
+      const res = await api.post('/ivr/check-verification', { phone: clean });
+      if (res.data?.success) {
+        const d = res.data.data;
+        setVerificationDetails(d);
+        if (!d.isConfigured) {
+          setVerificationStatus('NOT_CONFIGURED');
+        } else if (d.isVerified) {
+          setVerificationStatus('VERIFIED');
+        } else {
+          setVerificationStatus('UNVERIFIED');
+        }
+      }
+    } catch (e) {
+      setVerificationStatus('IDLE');
+    }
+  };
+
+  // Auto-check verification on load
+  useEffect(() => {
+    checkVerification('9344452523');
+  }, []);
+
+  // Trigger outbound call with live Twilio verification check + Sarvam AI
   const handleTriggerRealCall = async (e) => {
     e?.preventDefault();
     const clean = targetPhone.replace(/[^0-9]/g, '').slice(-10);
@@ -147,11 +177,32 @@ const DialphoneGateway = () => {
     }
 
     setIsCallingOutbound(true);
-    setOutboundCallStatus('RINGING');
-    toast.loading(`Calling +91 ${clean}... Look at your phone!`, { id: 'call-toast' });
+    setOutboundCallStatus('CHECKING');
+    toast.loading(`Verifying +91 ${clean} with Twilio...`, { id: 'call-toast' });
 
     try {
-      const res = await api.post('/ivr/trigger-outbound-call', { phone: clean });
+      // 1. Check Twilio verification
+      const verifyRes = await api.post('/ivr/check-verification', { phone: clean });
+      const verifyData = verifyRes.data?.data;
+      setVerificationDetails(verifyData);
+
+      if (verifyData?.isConfigured && !verifyData?.isVerified) {
+        setVerificationStatus('UNVERIFIED');
+        setOutboundCallStatus('UNVERIFIED');
+        toast.error(`+91 ${clean} is not verified in Twilio Trial account. Launching in-browser Sarvam Voice AI!`, { id: 'call-toast', duration: 5000 });
+        startVirtualCall();
+        return;
+      }
+
+      if (verifyData?.isVerified) {
+        setVerificationStatus('VERIFIED');
+      }
+
+      // 2. Trigger Outbound Call
+      setOutboundCallStatus('RINGING');
+      toast.loading(`Calling +91 ${clean} via Twilio + Sarvam AI... Look at your phone!`, { id: 'call-toast' });
+
+      const res = await api.post('/ivr/trigger-outbound-call', { phone: clean, lang: selectedLanguage });
       if (res.data?.success && res.data?.data?.success) {
         setCallSid(res.data.data?.callSid || 'CALL_' + Date.now());
         setOutboundCallStatus('IN_CALL');
@@ -161,24 +212,51 @@ const DialphoneGateway = () => {
         setTimeout(() => {
           setOutboundCallStatus('COMPLETED');
           toast.success('Voice call session completed and transcribed!');
+          fetchLogs();
         }, 12000);
       } else {
         setOutboundCallStatus('FAILED');
-        toast.error('Starting in-browser Voice AI simulator!', { id: 'call-toast' });
+        toast.error(res.data?.message || 'Could not place phone call. Starting Sarvam Voice AI simulator!', { id: 'call-toast' });
         startVirtualCall();
       }
       fetchLogs();
     } catch (err) {
       setOutboundCallStatus('IN_CALL');
-      toast.success('Live In-Browser Voice AI connection established!', { id: 'call-toast' });
+      toast.success('Live In-Browser Sarvam AI Voice connection established!', { id: 'call-toast' });
       startVirtualCall();
     } finally {
       setIsCallingOutbound(false);
     }
   };
 
-  const speakText = (text, lang = selectedLanguage) => {
-    if (isMuted || !('speechSynthesis' in window)) return;
+  const speakText = async (text, lang = selectedLanguage) => {
+    if (isMuted) return;
+    setIsAiSpeaking(true);
+    try {
+      // 1. Play real natural Indian language audio generated by Sarvam AI Bulbul v3
+      const res = await api.post('/ivr/synthesize-speech', { text, language: lang });
+      if (res.data?.audioUrl) {
+        const audio = new Audio(res.data.audioUrl);
+        audio.onplay = () => setIsAiSpeaking(true);
+        audio.onended = () => setIsAiSpeaking(false);
+        audio.onerror = () => {
+          setIsAiSpeaking(false);
+          fallbackSpeak(text, lang);
+        };
+        await audio.play();
+        return;
+      }
+    } catch (e) {
+      // Audio play failed or blocked, fallback
+    }
+    fallbackSpeak(text, lang);
+  };
+
+  const fallbackSpeak = (text, lang = selectedLanguage) => {
+    if (!('speechSynthesis' in window)) {
+      setIsAiSpeaking(false);
+      return;
+    }
     window.speechSynthesis.cancel();
     const clean = text.replace(/[*#_`]/g, '');
     const utterance = new SpeechSynthesisUtterance(clean);
@@ -448,40 +526,97 @@ const DialphoneGateway = () => {
           <div className="lg:col-span-7 space-y-4">
             
             {/* Real Outbound Twilio Call Trigger Box */}
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm transition-colors">
-              <div className="flex items-center gap-2 mb-2">
-                <Smartphone size={18} className="text-primary" />
-                <h3 className="text-sm font-black text-gray-900 dark:text-gray-100">
-                  Trigger Real Outbound Call to Physical Phone
-                </h3>
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-gray-100 dark:border-slate-800 shadow-sm transition-colors space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Smartphone size={18} className="text-emerald-500" />
+                  <h3 className="text-sm font-black text-gray-900 dark:text-gray-100">
+                    Twilio Outbound Call & Sarvam AI Voice
+                  </h3>
+                </div>
+                {verificationStatus === 'VERIFIED' ? (
+                  <Badge variant="success">✅ Twilio Verified</Badge>
+                ) : verificationStatus === 'UNVERIFIED' ? (
+                  <Badge variant="warning">⚠️ Twilio Unverified</Badge>
+                ) : verificationStatus === 'CHECKING' ? (
+                  <Badge variant="info">Checking Twilio...</Badge>
+                ) : null}
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                Enter your mobile number to receive a live demonstration phone call from the Sarvam AI Indian farmer IVR system.
+
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Enter your mobile number. The system verifies your number with Twilio, places the outbound call, and Sarvam Indic Voice AI conducts the harvest conversation.
               </p>
 
-              <form onSubmit={handleTriggerRealCall} className="flex gap-2">
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-2.5 text-xs font-bold text-gray-400">+91</span>
-                  <input
-                    type="tel"
-                    value={targetPhone}
-                    onChange={(e) => setTargetPhone(e.target.value)}
-                    placeholder="7989998568"
-                    className="w-full pl-11 pr-3 py-2 text-xs border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 font-bold"
-                  />
+              <form onSubmit={handleTriggerRealCall} className="space-y-3">
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute left-3 top-2.5 text-xs font-bold text-gray-400">+91</span>
+                    <input
+                      type="tel"
+                      value={targetPhone}
+                      onChange={(e) => {
+                        setTargetPhone(e.target.value);
+                        setVerificationStatus('IDLE');
+                      }}
+                      placeholder="9344452523"
+                      className="w-full pl-11 pr-3 py-2 text-xs border border-gray-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-100 font-bold"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => checkVerification()}
+                    loading={verificationStatus === 'CHECKING'}
+                    className="text-xs"
+                  >
+                    Check Twilio
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    loading={isCallingOutbound}
+                    className="flex items-center gap-1.5"
+                  >
+                    <PhoneCall size={14} /> Call Phone
+                  </Button>
                 </div>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  loading={isCallingOutbound}
-                  className="flex items-center gap-1.5"
-                >
-                  <PhoneCall size={14} /> Trigger Call
-                </Button>
+
+                {verificationStatus === 'UNVERIFIED' && (
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-800 text-[11px] text-amber-900 dark:text-amber-200 space-y-2">
+                    <div className="font-bold flex items-center gap-1.5">
+                      <span>⚠️</span> Number +91 {targetPhone} is not verified in your Twilio Trial account.
+                    </div>
+                    <p className="text-amber-800 dark:text-amber-300 leading-relaxed">
+                      Twilio Trial accounts require outgoing calls to be placed to numbers verified in your Twilio Console (<a href="https://console.twilio.com/us1/develop/phone-numbers/manage/verified" target="_blank" rel="noreferrer" className="underline font-bold text-amber-950 dark:text-amber-100">Verified Caller IDs</a>).
+                    </p>
+                    <div className="pt-1">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="primary"
+                        className="text-xs py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-md"
+                        onClick={() => {
+                          toast.success('Starting live Sarvam AI Voice simulator with natural voice audio!');
+                          startVirtualCall();
+                        }}
+                      >
+                        🎙️ Run Live Sarvam AI Voice Call (In-Browser)
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {verificationStatus === 'VERIFIED' && (
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800 text-[11px] text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
+                    <span>✅ Ready to call! Your number is verified in Twilio.</span>
+                    <span className="font-mono font-bold text-emerald-700 dark:text-emerald-300">+91 {targetPhone}</span>
+                  </div>
+                )}
               </form>
 
               {outboundCallStatus !== 'IDLE' && (
-                <div className="mt-3 p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs">
+                <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-800 flex items-center justify-between text-xs">
                   <span className="font-bold text-emerald-950 dark:text-emerald-300">
                     Telephony State: <strong>{outboundCallStatus}</strong>
                   </span>
