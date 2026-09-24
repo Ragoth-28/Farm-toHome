@@ -139,9 +139,6 @@ const Navbar = () => {
                   <Link to="/bulk-buyer" className="bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-400/40 px-2.5 py-1 rounded-full text-xs font-bold transition-all flex items-center gap-1">
                     <Building2 size={13} className="text-purple-300" /> Bulk Wholesale
                   </Link>
-                  <Link to="/logistics/dashboard" className="hover:text-amber-300 transition-colors py-1 flex items-center gap-1">
-                    <Truck size={13} className="text-emerald-300" /> Logistics
-                  </Link>
                   <Link to="/agri-doctor" className="hover:text-amber-300 transition-colors py-1 flex items-center gap-1 text-emerald-300">
                     <Stethoscope size={14} /> Agri-Doctor
                   </Link>
