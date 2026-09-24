@@ -152,7 +152,7 @@ const AgriDoctor = () => {
             <Stethoscope size={14} className="text-emerald-300 animate-pulse" /> AI Crop Doctor (ResNet50 Vision & Voice Diagnostics)
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold mb-3">
-            Kisan Agri-Doctor (????? ??? ?????? / ????? ??????????)
+            Kisan Agri-Doctor (விவசாய பயிர் மருத்துவர் / किसान फसल चिकित्सक)
           </h1>
           <p className="text-emerald-100 max-w-3xl text-sm md:text-base leading-relaxed">
             Diagnose plant diseases from **leaf photos using ResNet50 Deep Transfer Learning** (PlantVillage 38 classes) or speak symptoms in native **Tamil**, **Hindi**, or **English**.
@@ -193,13 +193,13 @@ const AgriDoctor = () => {
             {/* Language Selector */}
             <div className="mb-4">
               <label className="block text-xs font-bold text-gray-700 mb-1.5 flex items-center gap-1">
-                <Globe size={13} className="text-primary" /> Advice Language (????? ????)
+                <Globe size={13} className="text-primary" /> Advice Language (மொழி / भाषा)
               </label>
               <div className="grid grid-cols-4 gap-2">
                 {[
-                  { id: 'ta', label: '?????' },
-                  { id: 'hi', label: '?????' },
-                  { id: 'mr', label: '?????' },
+                  { id: 'ta', label: 'தமிழ்' },
+                  { id: 'hi', label: 'हिन्दी' },
+                  { id: 'mr', label: 'मराठी' },
                   { id: 'en', label: 'English' }
                 ].map(l => (
                   <button
@@ -220,22 +220,22 @@ const AgriDoctor = () => {
 
             {/* Crop Selection */}
             <div className="mb-4">
-              <label className="block text-xs font-bold text-gray-700 mb-1">Crop (????? / ???)</label>
+              <label className="block text-xs font-bold text-gray-700 mb-1">Crop (பயிர் / फसल)</label>
               <select
                 value={cropName}
                 onChange={(e) => setCropName(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl p-2.5 text-xs bg-white font-medium focus:ring-2 focus:ring-primary focus:outline-none"
               >
-                <option value="Tomato">Tomato (??????? / ?????)</option>
-                <option value="Potato">Potato (?????????????? / ???)</option>
-                <option value="Corn (Maize)">Corn / Maize (???????????? / ?????)</option>
-                <option value="Apple">Apple (??????? / ???)</option>
-                <option value="Grape">Grape (???????? / ?????)</option>
-                <option value="Bell Pepper">Bell Pepper (??????????? / ????? ?????)</option>
-                <option value="Strawberry">Strawberry (??????????)</option>
-                <option value="Soybean">Soybean (????????)</option>
-                <option value="Orange">Orange / Citrus (??????)</option>
-                <option value="Paddy (Rice)">Paddy / Rice (???? / ???)</option>
+                <option value="Tomato">Tomato (தக்காளி / टमाटर)</option>
+                <option value="Potato">Potato (உருளைக்கிழங்கு / आलू)</option>
+                <option value="Corn (Maize)">Corn / Maize (மக்காச்சோளம் / मक्का)</option>
+                <option value="Apple">Apple (ஆப்பிள் / सेब)</option>
+                <option value="Grape">Grape (திராட்சை / अंगूर)</option>
+                <option value="Bell Pepper">Bell Pepper (குடைமிளகாய் / शिमला मिर्च)</option>
+                <option value="Strawberry">Strawberry (ஸ்ட்ராபெரி / स्ट्रॉबेरी)</option>
+                <option value="Soybean">Soybean (சோயாபீன் / सोयाबीन)</option>
+                <option value="Orange">Orange / Citrus (ஆரஞ்சு / संतरा)</option>
+                <option value="Paddy (Rice)">Paddy / Rice (நெல் / धान)</option>
               </select>
             </div>
 
@@ -334,9 +334,9 @@ const AgriDoctor = () => {
                       onChange={(e) => setSoilType(e.target.value)}
                       className="w-full border border-gray-300 rounded-xl p-2 text-xs bg-white font-medium focus:ring-2 focus:ring-primary focus:outline-none"
                     >
-                      <option value="Black Clay (Regur)">Black Soil (???? ????)</option>
-                      <option value="Red Loam">Red Soil (???????)</option>
-                      <option value="Alluvial Soil">Alluvial Soil</option>
+                      <option value="Black Clay (Regur)">Black Soil (கரிசல் மண் / काली मिट्टी)</option>
+                      <option value="Red Loam">Red Soil (செம்மண் / लाल मिट्टी)</option>
+                      <option value="Alluvial Soil">Alluvial Soil (வண்டல் மண் / जलोढ़ मिट्टी)</option>
                     </select>
                   </div>
                 </div>
@@ -455,7 +455,7 @@ const AgriDoctor = () => {
                       {(language === 'ta' && diagnosisResult.multilingual?.tamil) && (
                         <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-3 text-xs text-amber-950 mb-4 font-medium">
                           <p className="font-bold text-amber-900 mb-1 flex items-center gap-1">
-                            ?? ????? ???????? ??????:
+                            🌿 தமிழ் மருத்துவ ஆலோசனை (Tamil Prescription):
                           </p>
                           <p className="leading-relaxed">{diagnosisResult.multilingual.tamil}</p>
                         </div>
@@ -463,7 +463,7 @@ const AgriDoctor = () => {
                       {(language === 'hi' && diagnosisResult.multilingual?.hindi) && (
                         <div className="bg-amber-50/90 border border-amber-200 rounded-xl p-3 text-xs text-amber-950 mb-4 font-medium">
                           <p className="font-bold text-amber-900 mb-1 flex items-center gap-1">
-                            ?? ????? ????? ???????:
+                            🌿 हिन्दी फसल परामर्श (Hindi Prescription):
                           </p>
                           <p className="leading-relaxed">{diagnosisResult.multilingual.hindi}</p>
                         </div>
@@ -473,7 +473,7 @@ const AgriDoctor = () => {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                         <div className="bg-white border border-green-200 rounded-xl p-3.5 shadow-2xs">
                           <div className="flex items-center gap-1.5 font-bold text-green-800 mb-1.5">
-                            <Leaf size={14} className="text-green-600" /> Organic IPM Remedy (????? ???????)
+                            <Leaf size={14} className="text-green-600" /> Organic IPM Remedy (இயற்கை தீர்வு / जैविक उपचार)
                           </div>
                           <p className="text-[11px] text-gray-700 leading-relaxed">
                             {diagnosisResult.treatment?.organic}
@@ -482,7 +482,7 @@ const AgriDoctor = () => {
 
                         <div className="bg-white border border-blue-200 rounded-xl p-3.5 shadow-2xs">
                           <div className="flex items-center gap-1.5 font-bold text-blue-800 mb-1.5">
-                            <Shield size={14} className="text-blue-600" /> Chemical Control (????? ???????)
+                            <Shield size={14} className="text-blue-600" /> Chemical Control (இரசாயன கட்டுப்பாடு / रासायनिक नियंत्रण)
                           </div>
                           <p className="text-[11px] text-gray-700 leading-relaxed">
                             {diagnosisResult.treatment?.chemical}

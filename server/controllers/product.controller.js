@@ -28,6 +28,64 @@ const defaultShelfLifeDays = {
   oilseeds: 180
 };
 
+const COMMODITY_BACKEND_IMAGES = {
+  'tomato': 'https://images.unsplash.com/photo-1558818498-28c1e002b655?w=600&h=450&fit=crop',
+  'onion': 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=600&h=450&fit=crop',
+  'mango': 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=600&h=450&fit=crop',
+  'alphonso': 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=600&h=450&fit=crop',
+  'pomegranate': 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=600&h=450&fit=crop',
+  'banana': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&h=450&fit=crop',
+  'grapes': 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=600&h=450&fit=crop',
+  'grape': 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=600&h=450&fit=crop',
+  'guava': 'https://images.unsplash.com/photo-1536511132770-e5058c7e8c46?w=600&h=450&fit=crop',
+  'papaya': 'https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?w=600&h=450&fit=crop',
+  'strawberry': 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=600&h=450&fit=crop',
+  'apple': 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=600&h=450&fit=crop',
+  'cabbage': 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=600&h=450&fit=crop',
+  'potato': 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&h=450&fit=crop',
+  'carrot': 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600&h=450&fit=crop',
+  'rice': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&h=450&fit=crop',
+  'basmati': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&h=450&fit=crop',
+  'wheat': 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600&h=450&fit=crop',
+  'maize': 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=600&h=450&fit=crop',
+  'corn': 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=600&h=450&fit=crop',
+  'toor dal': 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&h=450&fit=crop',
+  'moong dal': 'https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?w=600&h=450&fit=crop',
+  'chana dal': 'https://images.unsplash.com/photo-1613743983303-b3e89f8a2b80?w=600&h=450&fit=crop',
+  'dal': 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&h=450&fit=crop',
+  'milk': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=600&h=450&fit=crop',
+  'ghee': 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&h=450&fit=crop',
+  'paneer': 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=600&h=450&fit=crop',
+  'soybean': 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=600&h=450&fit=crop',
+  'groundnut': 'https://images.unsplash.com/photo-1567894340315-735d7c361db0?w=600&h=450&fit=crop',
+  'mustard': 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?w=600&h=450&fit=crop',
+  'cinnamon': 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=600&h=450&fit=crop',
+  'black pepper': 'https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?w=600&h=450&fit=crop',
+  'cardamom': 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&h=450&fit=crop',
+  'clove': 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?w=600&h=450&fit=crop',
+  'cloves': 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?w=600&h=450&fit=crop'
+};
+
+const CATEGORY_BACKEND_IMAGES = {
+  vegetables: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600&h=450&fit=crop',
+  fruits: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=600&h=450&fit=crop',
+  grains: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600&h=450&fit=crop',
+  pulses: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&h=450&fit=crop',
+  dairy: 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&h=450&fit=crop',
+  spices: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&h=450&fit=crop',
+  oilseeds: 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=600&h=450&fit=crop',
+  default: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&h=450&fit=crop'
+};
+
+function getBackendCommodityImage(name, category) {
+  const n = (name || '').toLowerCase();
+  for (const [k, url] of Object.entries(COMMODITY_BACKEND_IMAGES)) {
+    if (n.includes(k)) return url;
+  }
+  const c = (category || '').toLowerCase();
+  return CATEGORY_BACKEND_IMAGES[c] || CATEGORY_BACKEND_IMAGES.default;
+}
+
 /**
  * Compute real-time freshness, shelf-life countdown and urgency status
  */
@@ -232,8 +290,15 @@ const getAllProducts = async (req, res) => {
       const isBulkAvailable = prod.quantity_kg >= 50;
       const bulkMoq = isBulkAvailable ? 50 : 1;
 
+      // Dynamic image resolution fallback
+      let resolvedImageUrl = prod.image_url;
+      if (!resolvedImageUrl || resolvedImageUrl.includes('1566385101042-1a0aa4c1c900') || resolvedImageUrl.includes('1612257416648-ee7a6c5b1e5e') || resolvedImageUrl.includes('1585996954372-a6bc5032dcc2')) {
+        resolvedImageUrl = getBackendCommodityImage(prod.name, prod.category);
+      }
+
       return {
         ...prod,
+        image_url: resolvedImageUrl,
         distance_km,
         estimated_transit_hours: transitHours,
         freshness,
@@ -353,8 +418,14 @@ const getProductById = async (req, res) => {
     const mspPrice = marketBench?.msp ? parseFloat((marketBench.msp / 100).toFixed(1)) : product.msp_price || parseFloat((product.price_per_kg * 0.9).toFixed(1));
     const supermarketPrice = parseFloat((product.price_per_kg * 1.35).toFixed(1));
 
+    let resolvedImageUrl = product.image_url;
+    if (!resolvedImageUrl || resolvedImageUrl.includes('1566385101042-1a0aa4c1c900') || resolvedImageUrl.includes('1612257416648-ee7a6c5b1e5e') || resolvedImageUrl.includes('1585996954372-a6bc5032dcc2')) {
+      resolvedImageUrl = getBackendCommodityImage(product.name, product.category);
+    }
+
     const enriched = {
       ...product,
+      image_url: resolvedImageUrl,
       distance_km,
       estimated_transit_hours: transitHours,
       freshness,

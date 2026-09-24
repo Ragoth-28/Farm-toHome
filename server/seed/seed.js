@@ -46,7 +46,7 @@ const seedData = async () => {
 
   // Seed Products
   console.log('Seeding products...');
-  const insertProduct = db.prepare('INSERT INTO products (farmer_id, name, category, description, quantity_kg, price_per_kg, msp_price, quality_grade, is_organic, harvest_date, expiry_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  const insertProduct = db.prepare('INSERT INTO products (farmer_id, name, category, description, quantity_kg, price_per_kg, msp_price, quality_grade, is_organic, harvest_date, expiry_date, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
   
   const nowMs = Date.now();
   const dayMs = 24 * 60 * 60 * 1000;
@@ -54,55 +54,55 @@ const seedData = async () => {
 
   const products = [
     // Tomatoes harvested today, fresh for 4 days
-    [1, 'Tomato', 'vegetables', 'Fresh red farm-picked tomatoes', 200, 25, null, 'A', 1, dStr(0), dStr(4)],
+    [1, 'Tomato', 'vegetables', 'Fresh red farm-picked tomatoes', 200, 25, null, 'A', 1, dStr(0), dStr(4), 'https://images.unsplash.com/photo-1558818498-28c1e002b655?w=600&h=450&fit=crop'],
     // Nashik onions, harvested 2 days ago, fresh for 14 days
-    [1, 'Onion', 'vegetables', 'Nashik red onions direct from farm', 500, 20, null, 'A', 0, dStr(-2), dStr(12)],
+    [1, 'Onion', 'vegetables', 'Nashik red onions direct from farm', 500, 20, null, 'A', 0, dStr(-2), dStr(12), 'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=600&h=450&fit=crop'],
     // Mango Alphonso harvested today, fresh for 5 days
-    [2, 'Mango Alphonso', 'fruits', 'Sweet alphonso mangoes, natural ripened', 100, 120, null, 'A', 1, dStr(0), dStr(5)],
+    [2, 'Mango Alphonso', 'fruits', 'Sweet alphonso mangoes, natural ripened', 100, 120, null, 'A', 1, dStr(0), dStr(5), 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=600&h=450&fit=crop'],
     // Pomegranate, fresh for 8 days
-    [2, 'Pomegranate', 'fruits', 'Anantapur ruby red special', 150, 80, null, 'B', 0, dStr(-1), dStr(7)],
+    [2, 'Pomegranate', 'fruits', 'Anantapur ruby red special', 150, 80, null, 'B', 0, dStr(-1), dStr(7), 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=600&h=450&fit=crop'],
     // Basmati Rice long shelf life
-    [3, 'Basmati Rice', 'grains', 'Premium long grain aged rice', 1000, 65, 32, 'A', 0, dStr(-10), dStr(180)],
+    [3, 'Basmati Rice', 'grains', 'Premium long grain aged rice', 1000, 65, 32, 'A', 0, dStr(-10), dStr(180), 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&h=450&fit=crop'],
     // Wheat long shelf life
-    [3, 'Wheat', 'grains', 'High quality sharbati wheat', 2000, 28, 22.75, 'A', 0, dStr(-5), dStr(180)],
+    [3, 'Wheat', 'grains', 'High quality sharbati wheat', 2000, 28, 22.75, 'A', 0, dStr(-5), dStr(180), 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=600&h=450&fit=crop'],
     // Black pepper
-    [4, 'Black Pepper', 'spices', 'Wayanad high piperine black pepper', 50, 550, null, 'A', 1, dStr(-10), dStr(365)],
+    [4, 'Black Pepper', 'spices', 'Wayanad high piperine black pepper', 50, 550, null, 'A', 1, dStr(-10), dStr(365), 'https://images.unsplash.com/photo-1508746829417-e6f548d8d6ed?w=600&h=450&fit=crop'],
     // Cardamom
-    [4, 'Cardamom', 'spices', 'Green aromatic cardamom', 20, 1800, null, 'A', 1, dStr(-5), dStr(365)],
+    [4, 'Cardamom', 'spices', 'Green aromatic cardamom', 20, 1800, null, 'A', 1, dStr(-5), dStr(365), 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=600&h=450&fit=crop'],
     // Fresh Milk - harvested today, expires tomorrow (URGENT FRESH DEAL)
-    [5, 'Fresh Milk', 'dairy', 'Pure morning cow milk (Raw & chilled)', 100, 55, null, 'A', 0, dStr(0), dStr(1)],
+    [5, 'Fresh Milk', 'dairy', 'Pure morning cow milk (Raw & chilled)', 100, 55, null, 'A', 0, dStr(0), dStr(1), 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=600&h=450&fit=crop'],
     // Paneer - freshly prepared, 2 days validity
-    [5, 'Paneer', 'dairy', 'Fresh farm cottage paneer', 50, 280, null, 'A', 0, dStr(0), dStr(2)],
+    [5, 'Paneer', 'dairy', 'Fresh farm cottage paneer', 50, 280, null, 'A', 0, dStr(0), dStr(2), 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=600&h=450&fit=crop'],
     // Grapes - harvested today, fresh for 4 days
-    [6, 'Grapes', 'fruits', 'Seedless green crisp grapes', 300, 60, null, 'A', 1, dStr(0), dStr(4)],
+    [6, 'Grapes', 'fruits', 'Seedless green crisp grapes', 300, 60, null, 'A', 1, dStr(0), dStr(4), 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=600&h=450&fit=crop'],
     // Papaya - urgent sale (1 day left)
-    [6, 'Papaya', 'fruits', 'Sweet table papaya (Ready to eat)', 200, 25, null, 'B', 0, dStr(-3), dStr(1)],
+    [6, 'Papaya', 'fruits', 'Sweet table papaya (Ready to eat)', 200, 25, null, 'B', 0, dStr(-3), dStr(1), 'https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?w=600&h=450&fit=crop'],
     // Toor Dal
-    [7, 'Toor Dal', 'pulses', 'Unpolished desi toor dal', 500, 95, 70, 'A', 0, dStr(-15), dStr(180)],
+    [7, 'Toor Dal', 'pulses', 'Unpolished desi toor dal', 500, 95, 70, 'A', 0, dStr(-15), dStr(180), 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=600&h=450&fit=crop'],
     // Moong Dal
-    [7, 'Moong Dal', 'pulses', 'Yellow split moong dal', 400, 110, 77.55, 'A', 0, dStr(-12), dStr(180)],
+    [7, 'Moong Dal', 'pulses', 'Yellow split moong dal', 400, 110, 77.55, 'A', 0, dStr(-12), dStr(180), 'https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?w=600&h=450&fit=crop'],
     // Mustard Seeds
-    [1, 'Mustard Seeds', 'oilseeds', 'Yellow bold mustard seeds', 300, 75, 54.50, 'A', 1, dStr(-20), dStr(180)],
+    [1, 'Mustard Seeds', 'oilseeds', 'Yellow bold mustard seeds', 300, 75, 54.50, 'A', 1, dStr(-20), dStr(180), 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?w=600&h=450&fit=crop'],
     // Groundnut
-    [2, 'Groundnut', 'oilseeds', 'Quality whole groundnuts', 450, 85, 63.77, 'A', 0, dStr(-10), dStr(90)],
+    [2, 'Groundnut', 'oilseeds', 'Quality whole groundnuts', 450, 85, 63.77, 'A', 0, dStr(-10), dStr(90), 'https://images.unsplash.com/photo-1567894340315-735d7c361db0?w=600&h=450&fit=crop'],
     // Soybean
-    [3, 'Soybean', 'oilseeds', 'Organic high-protein soybean', 600, 55, 46.00, 'A', 1, dStr(-14), dStr(180)],
+    [3, 'Soybean', 'oilseeds', 'Organic high-protein soybean', 600, 55, 46.00, 'A', 1, dStr(-14), dStr(180), 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=600&h=450&fit=crop'],
     // Cinnamon
-    [4, 'Cinnamon', 'spices', 'Premium rolled cinnamon sticks', 30, 800, null, 'A', 1, dStr(-30), dStr(365)],
+    [4, 'Cinnamon', 'spices', 'Premium rolled cinnamon sticks', 30, 800, null, 'A', 1, dStr(-30), dStr(365), 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=600&h=450&fit=crop'],
     // Ghee
-    [5, 'Ghee', 'dairy', 'Pure bilona cow ghee', 100, 600, null, 'A', 1, dStr(-5), dStr(180)],
+    [5, 'Ghee', 'dairy', 'Pure bilona cow ghee', 100, 600, null, 'A', 1, dStr(-5), dStr(180), 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=600&h=450&fit=crop'],
     // Strawberry - harvested today, 2 days validity
-    [6, 'Strawberry', 'fruits', 'Fresh red juicy strawberries', 80, 250, null, 'A', 0, dStr(0), dStr(2)],
+    [6, 'Strawberry', 'fruits', 'Fresh red juicy strawberries', 80, 250, null, 'A', 0, dStr(0), dStr(2), 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=600&h=450&fit=crop'],
     // Chana Dal
-    [7, 'Chana Dal', 'pulses', 'Organic unpolished chana dal', 400, 80, 53.35, 'A', 1, dStr(-8), dStr(180)],
+    [7, 'Chana Dal', 'pulses', 'Organic unpolished chana dal', 400, 80, 53.35, 'A', 1, dStr(-8), dStr(180), 'https://images.unsplash.com/photo-1613743983303-b3e89f8a2b80?w=600&h=450&fit=crop'],
     // Cabbage - urgent harvest (1 day left)
-    [1, 'Cabbage', 'vegetables', 'Fresh green leafy cabbage', 300, 20, null, 'B', 0, dStr(-2), dStr(1)],
+    [1, 'Cabbage', 'vegetables', 'Fresh green leafy cabbage', 300, 20, null, 'B', 0, dStr(-2), dStr(1), 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=600&h=450&fit=crop'],
     // Banana - ripe bunch (3 days left)
-    [2, 'Banana', 'fruits', 'Robusta golden bananas', 500, 30, null, 'A', 0, dStr(-1), dStr(3)],
+    [2, 'Banana', 'fruits', 'Robusta golden bananas', 500, 30, null, 'A', 0, dStr(-1), dStr(3), 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&h=450&fit=crop'],
     // Maize
-    [3, 'Maize', 'grains', 'Yellow corn grain', 1500, 24, 20.90, 'B', 0, dStr(-10), dStr(180)],
+    [3, 'Maize', 'grains', 'Yellow corn grain', 1500, 24, 20.90, 'B', 0, dStr(-10), dStr(180), 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=600&h=450&fit=crop'],
     // Cloves
-    [4, 'Cloves', 'spices', 'Aromatic fragrant cloves', 40, 1200, null, 'A', 1, dStr(-20), dStr(365)]
+    [4, 'Cloves', 'spices', 'Aromatic fragrant cloves', 40, 1200, null, 'A', 1, dStr(-20), dStr(365), 'https://images.unsplash.com/photo-1532336414038-cf19250c5757?w=600&h=450&fit=crop']
   ];
   
   products.forEach(p => insertProduct.run(...p));

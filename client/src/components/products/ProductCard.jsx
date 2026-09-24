@@ -4,6 +4,7 @@ import { ShoppingCart, Leaf, MapPin, Sparkles, Plus, Check, Star, Building2, Use
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
+import { getProductImageUrl, handleProductImageError } from '../../utils/productImages';
 
 const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
   const { user } = useAuth();
@@ -34,38 +35,7 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
 
   const getProductImage = () => {
     if (imgSrc) return imgSrc;
-    if (product.image_url) return product.image_url;
-    const name = (product.name || '').toLowerCase();
-    const productImages = {
-      'tomato':          'https://images.unsplash.com/photo-1558818498-28c1e002b655?w=400&h=300&fit=crop',
-      'onion':           'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=400&h=300&fit=crop',
-      'guava':           'https://images.unsplash.com/photo-1536511132770-e5058c7e8c46?w=400&h=300&fit=crop',
-      'bell pepper':     'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=300&fit=crop',
-      'red bell':        'https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=300&fit=crop',
-      'mango':           'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&h=300&fit=crop',
-      'alphonso':        'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&h=300&fit=crop',
-      'pomegranate':     'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400&h=300&fit=crop',
-      'banana':          'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=300&fit=crop',
-      'grapes':          'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400&h=300&fit=crop',
-      'grape':           'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=400&h=300&fit=crop',
-      'papaya':          'https://images.unsplash.com/photo-1517282009859-f000ec3b26fe?w=400&h=300&fit=crop',
-      'strawberry':      'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400&h=300&fit=crop',
-      'cabbage':         'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=400&h=300&fit=crop',
-      'rice':            'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=300&fit=crop',
-      'basmati':         'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400&h=300&fit=crop',
-      'wheat':           'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=300&fit=crop',
-      'maize':           'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400&h=300&fit=crop',
-      'corn':            'https://images.unsplash.com/photo-1551754655-cd27e38d2076?w=400&h=300&fit=crop',
-      'toor dal':        'https://images.unsplash.com/photo-1612257416648-ee7a6c5b1e5e?w=400&h=300&fit=crop',
-      'moong dal':       'https://images.unsplash.com/photo-1585996954372-a6bc5032dcc2?w=400&h=300&fit=crop',
-      'chana dal':       'https://images.unsplash.com/photo-1613743983303-b3e89f8a2b80?w=400&h=300&fit=crop',
-      'dal':             'https://images.unsplash.com/photo-1612257416648-ee7a6c5b1e5e?w=400&h=300&fit=crop',
-      'milk':            'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=300&fit=crop',
-    };
-    for (const key in productImages) {
-      if (name.includes(key)) return productImages[key];
-    }
-    return 'https://images.unsplash.com/photo-1566385101042-1a0aa4c1c900?w=400&h=300&fit=crop';
+    return getProductImageUrl(product);
   };
 
   const basePrice = Number(product.price_per_kg) || 20;
@@ -161,7 +131,7 @@ const ProductCard = ({ product, buyerPersona = 'consumer' }) => {
           <img 
             src={getProductImage()} 
             alt={product.name} 
-            onError={() => setImgSrc('https://images.unsplash.com/photo-1566385101042-1a0aa4c1c900?w=400&h=300&fit=crop')}
+            onError={(e) => handleProductImageError(e, product)}
             className={`w-full h-48 object-cover rounded-t-3xl transform group-hover:scale-105 transition-transform duration-500 ${isOutOfStock ? 'opacity-50 grayscale' : ''}`}
           />
           

@@ -14,6 +14,7 @@ import api from '../api/axios';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { getProductImageUrl, getProductGallery, handleProductImageError } from '../utils/productImages';
 
 const ProductPage = () => {
   const { id } = useParams();
@@ -131,13 +132,8 @@ const ProductPage = () => {
     );
   }
 
-  // Image Gallery Preparation (Provide 3 multi-angle images using category / unsplash)
-  const defaultImg = product.image_url || 'https://images.unsplash.com/photo-1558818498-28c1e002b655?w=800&h=600&fit=crop';
-  const galleryImages = [
-    defaultImg,
-    'https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?w=800&h=600&fit=crop',
-    'https://images.unsplash.com/photo-1566385101042-1a0aa4c1c900?w=800&h=600&fit=crop',
-  ];
+  // Image Gallery Preparation (Provide 3 verified multi-angle images tailored to product)
+  const galleryImages = getProductGallery(product);
 
   // Calculate volume tiered pricing
   const basePrice = Number(product.price_per_kg) || 20;
@@ -272,6 +268,7 @@ const ProductPage = () => {
                 <img
                   src={galleryImages[selectedImageIndex]}
                   alt={`${product.name} angle ${selectedImageIndex + 1}`}
+                  onError={(e) => handleProductImageError(e, product)}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute bottom-2 right-2 bg-slate-950/70 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-1 rounded-lg flex items-center gap-1">
@@ -293,7 +290,12 @@ const ProductPage = () => {
                         : 'border-gray-200 dark:border-slate-700 opacity-70 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                    <img 
+                      src={img} 
+                      alt="Thumbnail" 
+                      onError={(e) => handleProductImageError(e, product)}
+                      className="w-full h-full object-cover" 
+                    />
                   </button>
                 ))}
               </div>
@@ -518,8 +520,9 @@ const ProductPage = () => {
                 <Link to={`/product/${p.id || p._id}`} className="block group">
                   <div className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-slate-800 shadow-xs hover:shadow-md transition-all p-3">
                     <img
-                      src={p.image_url || 'https://images.unsplash.com/photo-1558818498-28c1e002b655?w=300&h=200&fit=crop'}
+                      src={getProductImageUrl(p)}
                       alt={p.name}
+                      onError={(e) => handleProductImageError(e, p)}
                       className="w-full h-32 object-cover rounded-xl group-hover:scale-105 transition-transform"
                     />
                     <h3 className="font-bold text-xs mt-2 truncate text-gray-900 dark:text-gray-100">{p.name}</h3>
@@ -554,6 +557,7 @@ const ProductPage = () => {
           <img
             src={galleryImages[selectedImageIndex]}
             alt="Expanded crop view"
+            onError={(e) => handleProductImageError(e, product)}
             className="max-h-[85vh] max-w-[90vw] object-contain rounded-2xl"
           />
         </div>
